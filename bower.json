@@ -1,0 +1,13 @@
+{
+  "name": "streamhub-collection-counter",
+  "version": "0.0.0",
+  "main": "dist/streamhub-collection-counter.min.js",
+  "devDependencies": {
+    "almond": "0.2.6",
+    "cajon": "git@github.com:requirejs/cajon.git#~0.1.11",
+    "sinonjs": "~1.7.3"
+  },
+  "dependencies": {
+    "base64": "git@github.com:ross-pfahler/Base64.js.git#~0.3.2"
+  }
+}
