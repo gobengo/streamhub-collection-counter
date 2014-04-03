@@ -10,7 +10,10 @@ var collections = [{
     articleId: 'custom-1379372287037'
 }];
 
-counter.count(collections, function (counts) {
-    console.log('counts');
-    console.log(counts);
+var count = counter.count.debounced(2000);
+
+collections.forEach(function (collection) {
+    count([collection, {}], function (counts) {
+        console.log('counts', counts);
+    });
 });

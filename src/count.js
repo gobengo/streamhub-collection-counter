@@ -16,7 +16,7 @@ var MAX_FETCH_ATTEMPTS = 5;
  * @param collections (optional): Array of objects with siteId and articleId keys or object with siteId->articleId->[elements] mapping
  * @param cb: A callback Function.
  */
-module.exports = function count(collections, cb) {
+var count = module.exports = function count(collections, cb) {
     var attempts = 0;
 
     // If passed article object, convert to list
@@ -54,7 +54,11 @@ module.exports = function count(collections, cb) {
                 var siteCounts = articleCounts[article.siteId];
                 var theseCounts = siteCounts && siteCounts[article.articleId];
                 var info = extend({}, theseCounts);
+                var err;
                 if ( ! theseCounts) {
+                    err = new Error("Couldn't get counts for collection: " + article);
+                    err.collection = article;
+                    allCounts.push(err);
                     return;
                 }
                 allCounts.push(extend(info, article));
@@ -68,6 +72,72 @@ module.exports = function count(collections, cb) {
             }, (response.data.wait || DEFAULT_RETRY_TIMEOUT));
         }
     }
+};
+
+/**
+ * Returns a count function, that, as long as it continues to be invoked, will not be triggered.
+ * The function will be called after it stops being called for N milliseconds.
+ * @param func {function} The function to debounce
+ * @param wait {number} The number of milliseconds to wait for execution of func
+ * @param immediate {boolean} trigger the function on the leading edge, instead of the trailing.
+ * @return {function} A debounced version the collectionCounter.count function
+ */
+count.debounced = function (wait, immediate) {
+    var calls = [];
+    var timeout, result;
+    // Call count once and invoke all the right callbacks from previous calls
+    function fetchAll() {
+        var theseCalls = calls.slice();
+        // reset calls for further debounced invocations
+        calls = [];
+        var collectionsPerCall = theseCalls.map(function (call) {
+            return call[0];
+        });
+        var allCollections = collectionsPerCall.reduce(function (all, moreCollections) {
+            all.push.apply(all, moreCollections);
+            return all;
+        }, []);
+        // Do one request for allCollections
+        count(allCollections, function (counts) {
+            // Now we need to invoke the cb for each of the calls
+            // with the appropriate subset of counts
+            invokeCallsWithCounts(theseCalls, counts);
+        });
+    }
+    function debouncedCount(collections, cb) {
+        calls.push(arguments);
+
+        var context = this,
+            args = arguments;
+        var later = function() {
+            timeout = null;
+            if (!immediate) {
+                result = fetchAll.apply(context, args);
+            }
+        };
+        var callNow = immediate && !timeout;
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+        if (callNow) {
+            result = fetchAll.apply(context, args);
+        }
+        return result;
+    }
+    // Given an array of calls and an array of counts from count(),
+    // figure out which counts go with with call and invoke them
+    function invokeCallsWithCounts(calls, counts) {
+        var countsIndex = 0;
+        debugger;
+        calls.forEach(function (call) {
+            var collections = call[0];
+            var numCollections = collections.length;
+            var callback = call[1];
+            var countsForThisCall = counts.slice(countsIndex, countsIndex + numCollections);
+            countsIndex += numCollections;
+            callback.call({}, countsForThisCall);
+        });
+    }
+    return debouncedCount;
 };
 
 /**
