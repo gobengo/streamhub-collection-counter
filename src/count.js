@@ -79,10 +79,9 @@ var count = module.exports = function count(collections, cb) {
  * The function will be called after it stops being called for N milliseconds.
  * @param func {function} The function to debounce
  * @param wait {number} The number of milliseconds to wait for execution of func
- * @param immediate {boolean} trigger the function on the leading edge, instead of the trailing.
  * @return {function} A debounced version the collectionCounter.count function
  */
-count.debounced = function (wait, immediate) {
+count.debounced = function (wait) {
     var calls = [];
     var timeout, result;
     // Call count once and invoke all the right callbacks from previous calls
@@ -111,23 +110,16 @@ count.debounced = function (wait, immediate) {
             args = arguments;
         var later = function() {
             timeout = null;
-            if (!immediate) {
-                result = fetchAll.apply(context, args);
-            }
+            result = fetchAll.apply(context, args);
         };
-        var callNow = immediate && !timeout;
         clearTimeout(timeout);
         timeout = setTimeout(later, wait);
-        if (callNow) {
-            result = fetchAll.apply(context, args);
-        }
         return result;
     }
     // Given an array of calls and an array of counts from count(),
     // figure out which counts go with with call and invoke them
     function invokeCallsWithCounts(calls, counts) {
         var countsIndex = 0;
-        debugger;
         calls.forEach(function (call) {
             var collections = call[0];
             var numCollections = collections.length;

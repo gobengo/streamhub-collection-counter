@@ -12,6 +12,7 @@ var collections = [{
 
 var count = counter.count.debounced(2000);
 
+// Only one ajax request will actually happen
 collections.forEach(function (collection) {
     count([collection, {}], function (counts) {
         console.log('counts', counts);
