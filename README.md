@@ -47,10 +47,13 @@ it would do 100 AJAX calls.
 For this, you can make a debounced version of the `counter.count` function.
 This one will only make the API request after not being called for 2 seconds.
 
-    var count = counter.count.debounced(2000);
-    count([collection1Info], function (counts1) {
-        console.log('collection1', counts);
-    });
-    count([collection2Info], function (counts) {
-        console.log('collection2', counts2);
-    });
+```javascript
+var count = counter.count.debounced(2000);
+count([collection1Info], function (counts1) {
+    console.log('collection1', counts);
+});
+count([collection2Info], function (counts) {
+    console.log('collection2', counts2);
+});
+```
+
